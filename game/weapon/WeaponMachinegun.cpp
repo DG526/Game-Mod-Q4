@@ -228,11 +228,17 @@ stateResult_t rvWeaponMachinegun::State_Fire ( const stateParms_t& parms ) {
 		case STAGE_INIT:
 			if ( wsfl.zoom ) {
 				nextAttackTime = gameLocal.time + (altFireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));
-				Attack ( true, 1, spreadZoom, 0, 1.0f );
+				//David begin//
+				gameLocal.Printf("Scissors!\n");
+				// David end //
+				//Attack ( true, 1, spreadZoom, 0, 1.0f ); //Commented original code.
 				fireHeld = true;
 			} else {
 				nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));
-				Attack ( false, 1, spread, 0, 1.0f );
+				//David begin//
+				gameLocal.Printf("Scissors!\n");
+				// David end //
+				//Attack ( false, 1, spread, 0, 1.0f ); //Commented original code.
 			}
 			PlayAnim ( ANIMCHANNEL_ALL, "fire", 0 );	
 			return SRESULT_STAGE ( STAGE_WAIT );
