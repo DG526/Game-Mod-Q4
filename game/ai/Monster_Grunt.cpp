@@ -17,6 +17,12 @@ public:
 	
 	virtual void		AdjustHealthByDamage	( int damage );
 
+	//David Begin//
+	virtual void		Think					(void);
+	char				GetMove					(void);
+	int					lastMoveTime = 0, seed = 42069; //Yes, seed is a nice and high number.
+	// David End //
+
 protected:
 
 	rvAIAction			actionMeleeMoveAttack;
@@ -316,3 +322,39 @@ stateResult_t rvMonsterGrunt::State_Torso_LeapAttack ( const stateParms_t& parms
 	}
 	return SRESULT_ERROR;
 }
+
+//David Begin//
+
+void rvMonsterGrunt::Think(void) {
+	if (CheckDormant()) {
+		return;
+	}
+	if (lastMoveTime == 0)
+		lastMoveTime = gameLocal.time;
+	if (gameLocal.time >= lastMoveTime + 3000) {
+		switch (GetMove()) {
+		case 'r':
+			gameLocal.Printf("Grunt picks Rock!\n");
+			break;
+		case 'p':
+			gameLocal.Printf("Grunt picks Paper!\n");
+			break;
+		case 's':
+			gameLocal.Printf("Grunt picks Scissors!\n");
+			break;
+		}
+		lastMoveTime = gameLocal.time;
+	}
+}
+
+char rvMonsterGrunt::GetMove(void) {
+	idRandom rand;
+	rand.SetSeed(seed++);
+	int choicePool = rand.RandomInt(10);
+	gameLocal.Printf("Chose %i\n", choicePool);
+	if (choicePool < 7)
+		return 'r';
+	return 'p';
+}
+
+// David End //

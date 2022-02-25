@@ -3243,3 +3243,17 @@ idGameLocal::ShutdownConsoleCommands
 void idGameLocal::ShutdownConsoleCommands( void ) {
 	cmdSystem->RemoveFlaggedCommands( CMD_FL_GAME );
 }
+
+//David Begin//
+
+void PickRock() {
+	gameLocal.Printf("Rock!\n");
+}
+void PickPaper() {
+	gameLocal.Printf("Paper!\n");
+}
+void PickScissors() {
+	gameLocal.Printf("Scissors!\n");
+}
+
+// David End //
