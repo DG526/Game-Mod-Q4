@@ -30,7 +30,6 @@
 #else
 #include "NoGameTypeInfo.h"
 #endif
-
 /*
 ==================
 Cmd_GetFloatArg
@@ -3038,6 +3037,193 @@ void Cmd_ClientOverflowReliable_f( const idCmdArgs& args ) {
 }
 #endif
 
+//David Begin//
+
+void PickRock(const idCmdArgs& args) {
+	if(gameLocal.GetLocalPlayer()->opponent != idPlayer::OP_NONE && gameLocal.GetLocalPlayer()->moveChoice == 'n')
+		gameLocal.GetLocalPlayer()->moveChoice = 'r';
+	gameLocal.Printf("Rock!\n");
+	gameLocal.GetLocalPlayer()->hud->SetStateString("movedisp", "You chose: Rock");
+}
+void PickPaper(const idCmdArgs& args) {
+	if (gameLocal.GetLocalPlayer()->opponent != idPlayer::OP_NONE && gameLocal.GetLocalPlayer()->moveChoice == 'n')
+		gameLocal.GetLocalPlayer()->moveChoice = 'p';
+	gameLocal.Printf("Paper!\n");
+	gameLocal.GetLocalPlayer()->hud->SetStateString("movedisp", "You chose: Paper");
+}
+void PickScissors(const idCmdArgs& args) {
+	if (gameLocal.GetLocalPlayer()->opponent != idPlayer::OP_NONE && gameLocal.GetLocalPlayer()->moveChoice == 'n')
+		gameLocal.GetLocalPlayer()->moveChoice = 's';
+	gameLocal.Printf("Scissors!\n");
+	gameLocal.GetLocalPlayer()->hud->SetStateString("movedisp", "You chose: Scissors");
+}
+void SpawnRandomOpponent() {
+	idRandom2 rand = idRandom2(gameLocal.time % 69420);
+	int randnum = rand.RandomInt(5);
+	gameLocal.Printf("Chose enemy %i.", randnum);
+	switch (randnum) {
+	case 0:
+		Cmd_Spawn_f(idCmdArgs("spawn monster_grunt", true));
+		gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_GRUNT;
+		break;
+	case 1:
+		Cmd_Spawn_f(idCmdArgs("spawn monster_scientist", true));
+		gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_SCIENTIST;
+		break;
+	case 2:
+		Cmd_Spawn_f(idCmdArgs("spawn monster_berserker", true));
+		gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_BERSERKER;
+		break;
+	case 3:
+		Cmd_Spawn_f(idCmdArgs("spawn monster_gladiator", true));
+		gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_GLADIATOR;
+		break;
+	case 4:
+		Cmd_Spawn_f(idCmdArgs("spawn monster_lighttank", true));
+		gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_LIGHTTANK;
+		break;
+	}
+	gameLocal.GetLocalPlayer()->usedAnticheat = false;
+}
+void SpawnRandomOpponent(int currentFoe) {
+	int seedBoost = 0;
+	for (bool valid = false; !valid; seedBoost++) {
+		idRandom2 rand = idRandom2(gameLocal.time % 69420 + seedBoost);
+		int randnum = rand.RandomInt(5);
+		if (randnum != currentFoe)
+			valid = true;
+		if (valid) {
+			gameLocal.Printf("Chose enemy %i.", randnum);
+			switch (randnum) {
+			case 0:
+				Cmd_Spawn_f(idCmdArgs("spawn monster_grunt", true));
+				gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_GRUNT;
+				break;
+			case 1:
+				Cmd_Spawn_f(idCmdArgs("spawn monster_scientist", true));
+				gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_SCIENTIST;
+				break;
+			case 2:
+				Cmd_Spawn_f(idCmdArgs("spawn monster_berserker", true));
+				gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_BERSERKER;
+				break;
+			case 3:
+				Cmd_Spawn_f(idCmdArgs("spawn monster_gladiator", true));
+				gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_GLADIATOR;
+				break;
+			case 4:
+				Cmd_Spawn_f(idCmdArgs("spawn monster_lighttank", true));
+				gameLocal.GetLocalPlayer()->opponent = idPlayer::OP_LIGHTTANK;
+				break;
+			}
+		}
+		
+	}
+	gameLocal.GetLocalPlayer()->usedAnticheat = false;
+}
+void NewRound(const idCmdArgs& args) {
+	gameLocal.GetLocalPlayer()->startingMatch = true;
+	if (gameLocal.GetLocalPlayer()->health % 5 != 0)
+		gameLocal.GetLocalPlayer()->health = 100;
+	if (!gameLocal.GetLocalPlayer()->inMatch) {
+		gameLocal.GetLocalPlayer()->moveChoice = 'n';
+		SpawnRandomOpponent();
+		gameLocal.GetLocalPlayer()->hud->SetStateString("outcomeStatus","");
+		gameLocal.GetLocalPlayer()->hud->SetStateInt("showmhelp", 1);
+		gameLocal.GetLocalPlayer()->hud->SetStateString("movedisp", "");
+	}
+}
+
+extern class idAI;
+
+void UseItem1(const idCmdArgs& args) { //Instakiller
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	if (!player || !gameLocal.GetCurrentOpponent() || player->opponent == idPlayer::OP_NONE || player->items[0] < 1)
+		return;
+	idAI* foe = gameLocal.GetCurrentOpponent();
+	foe->ForceKill();
+	player->IncrementScore();
+	player->items[0]--;
+	gameLocal.Printf("Used Instakill.\n");
+	gameLocal.GetLocalPlayer()->hud->SetStateString("outcomeStatus", "Monster was instakilled!");
+	player->hud->SetStateString("item1", va("[1]: Instakiller (%i/4)", player->items[0]));
+}
+void UseItem2(const idCmdArgs& args) { //Anticheat
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	if (!player || !gameLocal.GetCurrentOpponent() || player->opponent == idPlayer::OP_NONE || player->items[1] < 1 || player->usedAnticheat)
+		return;
+	idAI* foe = gameLocal.GetCurrentOpponent();
+	foe->canCheat = false;
+	player->items[1]--;
+	player->usedAnticheat = true;
+	gameLocal.Printf("Used Anticheat. You have %i left.\n",player->items[1]);
+	player->hud->SetStateString("item2", va("[2]: Anticheat   (%i/7)", player->items[1]));
+}
+void UseItem3(const idCmdArgs& args) { //Morpher
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	if (!player || !gameLocal.GetCurrentOpponent() || player->opponent == idPlayer::OP_NONE || player->items[2] < 1)
+		return;
+	if (player->opponent == idPlayer::OP_GRUNT) {
+		idAI* foe = gameLocal.GetCurrentOpponent();
+		foe->ForceKill();
+		SpawnRandomOpponent(0);
+	}
+	if (player->opponent == idPlayer::OP_SCIENTIST) {
+		idAI* foe = gameLocal.GetCurrentOpponent();
+		foe->ForceKill();
+		SpawnRandomOpponent(1);
+	}
+	if (player->opponent == idPlayer::OP_BERSERKER) {
+		idAI* foe = gameLocal.GetCurrentOpponent();
+		foe->ForceKill();
+		SpawnRandomOpponent(2);
+	}
+	if (player->opponent == idPlayer::OP_GLADIATOR) {
+		idAI* foe = gameLocal.GetCurrentOpponent();
+		foe->ForceKill();
+		SpawnRandomOpponent(3);
+	}
+	if (player->opponent == idPlayer::OP_LIGHTTANK) {
+		idAI* foe = gameLocal.GetCurrentOpponent();
+		foe->ForceKill();
+		SpawnRandomOpponent(4);
+	}
+	player->items[2]--;
+	gameLocal.Printf("Used Morpher.\n");
+	gameLocal.GetLocalPlayer()->hud->SetStateString("outcomeStatus", "Monster was transformed, timer reset!");
+	player->hud->SetStateString("item3", va("[3]: Morpher     (%i/6)", player->items[2]));
+}
+void UseItem4(const idCmdArgs& args) { //Syncer
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	if (!player || !gameLocal.GetCurrentOpponent() || player->opponent == idPlayer::OP_NONE || player->items[3] < 1)
+		return;
+	idAI* foe = gameLocal.GetCurrentOpponent();
+	foe->synced = true;
+	player->IncrementScore();
+	player->items[3]--;
+	gameLocal.Printf("Used Syncer.\n");
+	player->hud->SetStateString("item4", va("[4]: Syncer      (%i/5)", player->items[3]));
+}
+void UseItem5(const idCmdArgs& args) { //Medkit
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	if (!player || !player->startingMatch || player->health == 100 || player->items[4] < 1)
+		return;
+	player->health += 25;
+	if (player->health > 100)
+		player->health = 100;
+	player->items[4]--;
+	gameLocal.Printf("Used Medkit.\n");
+	player->hud->SetStateString("item5", va("[5]: Medkit      (%i/8)", player->items[4]));
+}
+void Luck(const idCmdArgs& args) { //Toggles loot guarantee.
+	gameLocal.GetLocalPlayer()->guaranteedLoot = !gameLocal.GetLocalPlayer()->guaranteedLoot;
+	if(gameLocal.GetLocalPlayer()->guaranteedLoot)
+		gameLocal.Printf("You feel lucky!\n");
+	else
+		gameLocal.Printf("You feel less lucky.\n");
+}
+// David End //
+
 /*
 =================
 idGameLocal::InitConsoleCommands
@@ -3233,6 +3419,18 @@ void idGameLocal::InitConsoleCommands( void ) {
 	cmdSystem->AddCommand( "buy",					Cmd_BuyItem_f,				CMD_FL_GAME,				"Buy an item (if in a buy zone and the game type supports it)" );
 // RITUAL END
 
+//David Begin//
+	cmdSystem->AddCommand("startRound", NewRound, CMD_FL_GAME, "Starts a new round of RPS");
+	cmdSystem->AddCommand("rock", PickRock, CMD_FL_GAME, "Picks rock");
+	cmdSystem->AddCommand("paper", PickPaper, CMD_FL_GAME, "Picks paper");
+	cmdSystem->AddCommand("scissors", PickScissors, CMD_FL_GAME, "Picks scissors");
+	cmdSystem->AddCommand("item1", UseItem1, CMD_FL_GAME, "Uses an instakiller");
+	cmdSystem->AddCommand("item2", UseItem2, CMD_FL_GAME, "Uses an anticheat");
+	cmdSystem->AddCommand("item3", UseItem3, CMD_FL_GAME, "Uses a morpher");
+	cmdSystem->AddCommand("item4", UseItem4, CMD_FL_GAME, "Uses a syncer");
+	cmdSystem->AddCommand("item5", UseItem5, CMD_FL_GAME, "Uses a medkit");
+	cmdSystem->AddCommand("luck", Luck, CMD_FL_GAME, "Toggles luck");
+// David End //
 }
 
 /*
@@ -3243,17 +3441,3 @@ idGameLocal::ShutdownConsoleCommands
 void idGameLocal::ShutdownConsoleCommands( void ) {
 	cmdSystem->RemoveFlaggedCommands( CMD_FL_GAME );
 }
-
-//David Begin//
-
-void PickRock() {
-	gameLocal.Printf("Rock!\n");
-}
-void PickPaper() {
-	gameLocal.Printf("Paper!\n");
-}
-void PickScissors() {
-	gameLocal.Printf("Scissors!\n");
-}
-
-// David End //

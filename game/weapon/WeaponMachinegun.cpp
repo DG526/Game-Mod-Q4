@@ -229,14 +229,20 @@ stateResult_t rvWeaponMachinegun::State_Fire ( const stateParms_t& parms ) {
 			if ( wsfl.zoom ) {
 				nextAttackTime = gameLocal.time + (altFireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));
 				//David begin//
-				gameLocal.Printf("Scissors!\n");
+				if (owner->moveChoice == 'n') {
+					owner->moveChoice = 's';
+					gameLocal.Printf("Scissors!\n");
+				}
 				// David end //
 				//Attack ( true, 1, spreadZoom, 0, 1.0f ); //Commented original code.
 				fireHeld = true;
 			} else {
 				nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));
 				//David begin//
-				gameLocal.Printf("Scissors!\n");
+				if (owner->moveChoice == 'n') {
+					owner->moveChoice = 's';
+					gameLocal.Printf("Scissors!\n");
+				}
 				// David end //
 				//Attack ( false, 1, spread, 0, 1.0f ); //Commented original code.
 			}

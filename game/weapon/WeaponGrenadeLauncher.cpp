@@ -146,7 +146,10 @@ stateResult_t rvWeaponGrenadeLauncher::State_Fire ( const stateParms_t& parms ) 
 		case STAGE_INIT:
 			nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));
 			//David begin//
-			gameLocal.Printf("Rock!\n");
+			if (owner->moveChoice == 'n') {
+				owner->moveChoice = 'r';
+				gameLocal.Printf("Rock!\n");
+			}
 			// David end //
 			//Attack ( false, 1, spread, 0, 1.0f ); //Commented original code.
 			PlayAnim ( ANIMCHANNEL_ALL, GetFireAnim(), 0 );	

@@ -5149,3 +5149,14 @@ bool idAI::CheckDeathCausesMissionFailure( void )
 	}
 	return false;
 }
+//David Begin
+void idAI::ForceKill() {
+	player->inMatch = false;
+	player->opponent = idPlayer::OP_NONE;
+	AdjustHealthByDamage(health);
+	Killed(player, player, health, vec3_zero, INVALID_JOINT);
+	Gib(vec3_zero, "damage_hyperblaster");
+	gameLocal.GetLocalPlayer()->hud->SetStateString("countdownStatus", "");
+	gameLocal.GetLocalPlayer()->hud->SetStateString("outcomeStatus", "Monster was instakilled!");
+}
+// David End

@@ -479,6 +479,20 @@ public:
 	virtual bool			IsCrouching						( void ) const;
 
 
+	//David Begin//
+	char				GetMove(void);
+	char				Cheat(void);
+	bool synced = false;
+	bool canCheat = true;
+	typedef enum { Monster = -1, Draw = 0, Player = 1 } Winner;
+	idAI::Winner GetWinner(void);
+	char				chosenMove = 'n';
+	int					roundStartTime = 0, seed = 42069; //Yes, seed is a nice and high number.
+	idPlayer* player;
+	void				ForceKill(void);
+	void				LootDrop(void);
+	// David End //
+
 public:
 
 	idLinkList<idAI>		simpleThinkNode;

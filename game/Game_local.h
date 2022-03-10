@@ -46,6 +46,13 @@ class idWorldspawn;
 class idTestModel;
 class idAAS;
 class idAI;
+//David begin//
+class rvMonsterGrunt;
+class rvMonsterScientist;
+class rvMonsterBerserker;
+class rvMonsterGladiator;
+class rvMonsterLightTank;
+// David end //
 // RAVEN BEGIN
 // bdube: not using id effects
 //class idSmokeParticles;
@@ -748,6 +755,16 @@ public:
 	int						GetClientNumByName( const char *name ) const;
 
 	idPlayer *				GetLocalPlayer() const;
+	//David begin//
+	/*
+	rvMonsterGrunt* GetCurrentGrunt() const;
+	rvMonsterScientist* GetCurrentScientist() const;
+	rvMonsterBerserker* GetCurrentBerserker() const;
+	rvMonsterGladiator* GetCurrentGladiator() const;
+	rvMonsterLightTank* GetCurrentLightTank() const;
+	*/
+	idAI* GetCurrentOpponent() const;
+	// David end //
 	
 // RAVEN BEGIN
 // jshepard: update player data after main menu close

@@ -17,6 +17,9 @@
 #include "ai/AAS_tactical.h"
 #include "Healing_Station.h"
 #include "ai/AI_Medic.h"
+//David begin//
+#include <stdio.h>
+// David end //
 
 // RAVEN BEGIN
 // nrausch: support for turning the weapon change ui on and off
@@ -1077,6 +1080,20 @@ idPlayer::idPlayer
 ==============
 */
 idPlayer::idPlayer() {
+	//David Begin//
+	moveChoice = 'n';
+	inMatch = false;
+	startingMatch = false;
+	//health = 100;
+	score = 0;
+	items[0] = 0;
+	items[1] = 2;
+	items[2] = 0;
+	items[3] = 1;
+	items[4] = 1;
+	usedAnticheat = false;
+	// David End //
+
 	memset( &usercmd, 0, sizeof( usercmd ) );
 
 	alreadyDidTeamAnnouncerSound = false;
@@ -3399,7 +3416,7 @@ void idPlayer::UpdateHudStats( idUserInterface *_hud ) {
 		_hud->SetStateFloat	( "player_healthpct", idMath::ClampFloat ( 0.0f, 1.0f, (float)health / (float)inventory.maxHealth ) );
 		_hud->HandleNamedEvent ( "updateHealth" );
 	}
-		
+	/*
 	temp = _hud->State().GetInt ( "player_armor", "-1" );
 	if ( temp != inventory.armor ) {
 		_hud->SetStateInt ( "player_armorDelta", temp == -1 ? 0 : (temp - inventory.armor) );
@@ -3407,7 +3424,21 @@ void idPlayer::UpdateHudStats( idUserInterface *_hud ) {
 		_hud->SetStateFloat	( "player_armorpct", idMath::ClampFloat ( 0.0f, 1.0f, (float)inventory.armor / (float)inventory.maxarmor ) );
 		_hud->HandleNamedEvent ( "updateArmor" );
 	}
-	
+	*/ //Commented Original Code
+	//David begin//
+	temp = _hud->State().GetInt("player_armor", "-1");
+	if (temp != score) {
+		_hud->SetStateInt("player_armorDelta", temp == -1 ? 0 : (temp - score));
+		_hud->SetStateInt("player_armor", score);
+		_hud->SetStateFloat("player_armorpct", idMath::ClampFloat(0.0f, 1.0f, (float)score / (float)500));
+		_hud->HandleNamedEvent("updateArmor");
+	}
+	_hud->SetStateString("gui::item1", va("[1]: Instakiller (%i/4)", items[0]));
+	_hud->SetStateString("gui::item2", va("[2]: Anticheat   (%i/7)", items[1]));
+	_hud->SetStateString("gui::item3", va("[3]: Morpher     (%i/6)", items[2]));
+	_hud->SetStateString("gui::item4", va("[4]: Syncer      (%i/5)", items[3]));
+	_hud->SetStateString("gui::item5", va("[5]: Medkit      (%i/8)", items[4]));
+	// David end //
 	// Boss bar
 	if ( _hud->State().GetInt ( "boss_health", "-1" ) != (bossEnemy ? bossEnemy->health : -1) ) {
 		if ( !bossEnemy || bossEnemy->health <= 0 ) {
@@ -14078,3 +14109,122 @@ int idPlayer::CanSelectWeapon(const char* weaponName)
 }
 
 // RITUAL END
+
+//David begin//
+void idPlayer::IncrementScore(void) {
+	score++;
+	if (score % 2 == 0 && health < 100)
+		health += 5;
+}
+void idPlayer::AddPowerup(int item) {
+	switch (item) {
+	case 0:
+		if (items[0] == 4)
+			return;
+		break;
+	case 1:
+		if (items[1] == 7)
+			return;
+		break;
+	case 2:
+		if (items[2] == 6)
+			return;
+		break;
+	case 3:
+		if (items[3] == 5)
+			return;
+		break;
+	case 4:
+		if (items[4] == 8)
+			return;
+		break;
+	}
+	items[item]++;
+	hud->SetStateString("item1", va("[1]: Instakiller (%i/4)", items[0]));
+	hud->SetStateString("item2", va("[2]: Anticheat   (%i/7)", items[1]));
+	hud->SetStateString("item3", va("[3]: Morpher     (%i/6)", items[2]));
+	hud->SetStateString("item4", va("[4]: Syncer      (%i/5)", items[3]));
+	hud->SetStateString("item5", va("[5]: Medkit      (%i/8)", items[4]));
+}
+void idPlayer::CalcHighScore() {
+	bool newHScore = false;
+	int oldList[10] = { 0,0,0,0,0,0,0,0,0,0 };
+	int newList[10] = { 0,0,0,0,0,0,0,0,0,0 };
+	bool error = false;
+	int place = -1;
+	FILE* scorelist = fopen("highscores.txt","r");
+	if (scorelist != NULL) {
+		char* c;
+		int lnum = 0;
+		while (!feof(scorelist) && lnum < 10) {
+			fgets(c, MAXINT, scorelist);
+			bool numeric = true;
+			for (int i = 0; i < sizeof(c); i++) {
+				if (!isdigit(c[i])) {
+					numeric == false;
+					break;
+				}
+			}
+			if (!numeric) {
+				error = true;
+				break;
+			}
+			oldList[lnum] = int(c);
+			lnum++;
+		}
+		for (int i = 0; i < 10; i++) {
+			if (score >= oldList[i]) {
+				place = i;
+				break;
+			}
+		}
+		bool placed = false;
+		for (int i = 0; i < 10; i++) {
+			if (i == place) {
+				placed = true;
+				newList[i] == score;
+				continue;
+			}
+			newList[i] == oldList[placed ? i - 1 : i];
+		}
+		fclose(scorelist);
+	}
+	else if (score > 0) {
+		newList[0] = score;
+		place = 0;
+	}
+	FILE* expList = fopen("highscores.txt", "w");
+	for (int i = 0; i < 10; i++) {
+		fprintf(expList, "%i\n", newList[i]);
+	}
+	fclose(expList);
+	switch (place) {
+	case -1:
+		hud->SetStateString("winMsg", "You didn't make the top 10...");
+		break;
+	case 0:
+		hud->SetStateString("winMsg", "You got 1st place on the leaderboard!!");
+		break;
+	case 1:
+		hud->SetStateString("winMsg", "You got 2nd place on the leaderboard!");
+		break;
+	case 2:
+		hud->SetStateString("winMsg", "You got 3rd place on the leaderboard!");
+		break;
+	default:
+		hud->SetStateString("winMsg", va("You got %ith place on the leaderboard.", place + 1));
+		break;
+	}
+
+	hud->SetStateString("score1", va(" 1: %i", newList[0]));
+	hud->SetStateString("score2", va(" 2: %i", newList[1]));
+	hud->SetStateString("score3", va(" 3: %i", newList[2]));
+	hud->SetStateString("score4", va(" 4: %i", newList[3]));
+	hud->SetStateString("score5", va(" 5: %i", newList[4]));
+	hud->SetStateString("score6", va(" 6: %i", newList[5]));
+	hud->SetStateString("score7", va(" 7: %i", newList[6]));
+	hud->SetStateString("score8", va(" 8: %i", newList[7]));
+	hud->SetStateString("score9", va(" 9: %i", newList[8]));
+	hud->SetStateString("score10", va("10: %i", newList[9]));
+}
+// David end //

@@ -165,7 +165,10 @@ stateResult_t rvWeaponShotgun::State_Fire( const stateParms_t& parms ) {
 		case STAGE_INIT:
 			nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));
 			//David begin//
-			gameLocal.Printf("Paper!\n");
+			if (owner->moveChoice == 'n') {
+				owner->moveChoice = 'p';
+				gameLocal.Printf("Paper!\n");
+			}
 			// David end //
 			//Attack( false, hitscans, spread, 0, 1.0f ); //Commented original code.
 			PlayAnim( ANIMCHANNEL_ALL, "fire", 0 );	

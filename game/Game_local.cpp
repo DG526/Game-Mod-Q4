@@ -3085,6 +3085,86 @@ idPlayer *idGameLocal::GetLocalPlayer() const {
 	return static_cast<idPlayer *>( entities[ localClientNum ] );
 }
 
+//David begin//
+/*
+extern class rvMonsterGrunt;
+extern class rvMonsterScientist;
+extern class rvMonsterBerserker;
+extern class rvMonsterGladiator;
+extern class rvMonsterLightTank;
+
+rvMonsterGrunt* idGameLocal::GetCurrentGrunt() const {
+	for each (idEntity* e in entities)
+	{
+		if (e->IsType(rvMonsterGrunt::GetClassType()) && static_cast<rvMonsterGrunt*>(e)->player == GetLocalPlayer() && GetLocalPlayer()->startingMatch)
+			return static_cast<rvMonsterGrunt*>(e);
+	}
+	return NULL;
+}
+rvMonsterScientist* idGameLocal::GetCurrentScientist() const {
+	for each (idEntity * e in entities)
+	{
+		if (e->IsType(rvMonsterScientist::GetClassType()) && static_cast<rvMonsterScientist*>(e)->player == GetLocalPlayer() && GetLocalPlayer()->startingMatch)
+			return static_cast<rvMonsterScientist*>(e);
+	}
+	return NULL;
+}
+rvMonsterBerserker* idGameLocal::GetCurrentBerserker() const {
+	for each (idEntity * e in entities)
+	{
+		if (e->IsType(rvMonsterBerserker::GetClassType()) && static_cast<rvMonsterBerserker*>(e)->fightable && static_cast<rvMonsterBerserker*>(e)->player == GetLocalPlayer() && GetLocalPlayer()->startingMatch)
+			return static_cast<rvMonsterBerserker*>(e);
+	}
+	return NULL;
+}
+rvMonsterGladiator* idGameLocal::GetCurrentGladiator() const {
+	for each (idEntity * e in entities)
+	{
+		if (e->IsType(rvMonsterGladiator::GetClassType()) && static_cast<rvMonsterGladiator*>(e)->player == GetLocalPlayer() && GetLocalPlayer()->startingMatch)
+			return static_cast<rvMonsterGladiator*>(e);
+	}
+	return NULL;
+}
+rvMonsterLightTank* idGameLocal::GetCurrentLightTank() const {
+	for each (idEntity * e in entities)
+	{
+		if (e->IsType(rvMonsterLightTank::GetClassType()) && static_cast<rvMonsterLightTank*>(e)->player == GetLocalPlayer() && GetLocalPlayer()->startingMatch)
+			return static_cast<rvMonsterLightTank*>(e);
+	}
+	return NULL;
+}
+*/
+idAI* idGameLocal::GetCurrentOpponent() const {
+	if (!gameLocal.GetLocalPlayer())
+		return NULL;
+	idAI* opp = NULL;
+	for (int i = 0; i < MAX_GENTITIES; i++)
+	{
+		idEntity* e = entities[i];
+		
+		if (!e || !e->IsActive())
+			continue;
+		
+		const char* classname = e->GetClassname();
+		gameLocal.Printf("Entity %i is %s\n",i,classname);
+		if (classname == "rvMonsterGrunt" || classname == "rvMonsterScientist" || classname == "rvMonsterBerserker" || classname == "rvMonsterGladiator" || classname == "rvMonsterLightTank")
+		{
+			idPlayer* player = (static_cast<idAI*>(e))->player;
+			if (player) {
+				opp = static_cast<idAI*>(e);
+				break;
+			}
+		}
+		
+	}
+	if (opp) {
+		gameLocal.Printf("Got an opponent!\n");
+		return opp;
+	}
+	return NULL;
+}
+// David end //
+
 /*
 ================
 idGameLocal::SetupClientPVS

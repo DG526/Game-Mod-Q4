@@ -2,7 +2,11 @@
 // bdube: note that this file is no longer merged with Doom3 updates
 //
 // MERGE_DATE 07/07/2004
-
+//#include "ai/Monster_Berserker.cpp"
+//#include "ai/Monster_Gladiator.cpp"
+//#include "ai/Monster_LightTank.cpp"
+//#include "ai/Monster_Scientist.cpp"
+//#include "ai/Monster_Grunt.cpp"
 #ifndef __GAME_PLAYER_H__
 #define __GAME_PLAYER_H__
 
@@ -269,6 +273,34 @@ public:
 
 class idPlayer : public idActor {
 public:
+
+	//David begin//
+	char moveChoice;
+	bool inMatch, startingMatch;
+	int score;
+	void IncrementScore(void);
+	typedef enum Opponent {
+		OP_NONE = 0,
+		OP_GRUNT,
+		OP_SCIENTIST,
+		OP_BERSERKER,
+		OP_GLADIATOR,
+		OP_LIGHTTANK
+	};
+	Opponent opponent = OP_NONE;
+	int items[5];
+	void AddPowerup(int);
+	bool usedAnticheat;
+	bool guaranteedLoot = false;
+	void CalcHighScore();
+	/*
+	rvMonsterGrunt* currentGrunt = NULL;
+	rvMonsterScientist* currentScientist = NULL;
+	rvMonsterBerserker* currentBerserker = NULL;
+	rvMonsterGladiator* currentGladiator = NULL;
+	rvMonsterLightTank* currentLightTank = NULL;
+	*/
+	// David end //
 
  	enum {
  		EVENT_IMPULSE = idEntity::EVENT_MAXEVENTS,
